@@ -12,9 +12,9 @@ const middleware = (req, res, next) => {
   const { id } = req.params;
   const idParsed = parseInt(id);
   if (isNaN(idParsed)) return res.sendStatus(400);
-  const findIndex = users.findIndex((user) => user.id === idParsed);
-  if (findIndex === -1) return res.sendStatus(404);
-  req.findIndex = findIndex; // request is required for the others middlewares to access that property
+  const findUserIndex = users.findIndex((user) => user.id === idParsed);
+  if (findUserIndex === -1) return res.sendStatus(404);
+  req.findUserIndex = findUserIndex; // request is required for the others middlewares to access that property
   next(); // it is required to allow the following middleware to initiate.
 };
 
@@ -48,14 +48,11 @@ app.get("/api/users", (req, res) => {
 
 // params
 
-app.get("/api/users/:id", (req, res) => {
-  const { id } = req.params;
-  const idParsed = parseInt(id);
-  if (isNaN(idParsed)) return res.status(400).send("ID not a number");
-  const findIndex = users.findIndex((user) => user.id === idParsed);
-  if (findIndex === -1) return res.status(404).send("User not found");
-  return res.status(200).send(users[findIndex]);
+app.get("/api/users/:id", middleware,  (req, res) => {
+  const { findUserIndex } = req
+  return res.status(200).send(users[findUserIndex]);
 });
+
 
 // create new user
 
@@ -70,24 +67,24 @@ app.post("/api/users", (req, res) => {
 // put to modify all the user CAREFUL!!! you require to write all the keys otherways they will disappear
 
 app.put("/api/users/:id", middleware, (req, res) => {
-  const { body, findIndex } = req;
-  users[findIndex] = { id: users[findIndex].id, ...body };
+  const { body, findUserIndex, } = req;
+  users[findUserIndex] = { id: users[findUserIndex].id, ...body };
   return res.sendStatus(200);
 });
 
 //patch just modify the key you want to modify no need to indluce the other keys.
 
 app.patch("/api/users/:id", middleware, (req, res) => {
-  const { body, findIndex } = req;
-  users[findIndex] = { ...users[findIndex], ...body };
+  const { body, findUserIndex } = req;
+  users[findUserIndex] = { ...users[findUserIndex], ...body };
   return res.sendStatus(200);
 });
 
 //delete
 
 app.delete("/api/users/:id", middleware, (req, res) => {
-  const { findIndex } = req;
-  users.splice(findIndex, 1);
+  const { findUserIndex } = req;
+  users.splice(findUserIndex, 1);
   return res.sendStatus(200);
 });
 
